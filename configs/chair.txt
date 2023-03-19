@@ -1,0 +1,30 @@
+expname = blender_paper_chair
+basedir = data/nerf_synthetic/chair/logs
+datadir = data/nerf_synthetic/chair
+dataset_type = blender
+
+
+lrate_decay = 500
+
+
+b_max = 1.2, 1.2, 1.2
+b_min = -1.2, -1.2, -1.2
+
+
+### MODEL
+use_residual = True
+trial.ON = True
+trial.body_arch = resmlp
+hard_ratio = 0.2
+hard_mul = 20
+warmup_lr = 0.00001,200
+netdepth = 88
+netwidth = 256 
+netdepth_d = 88 
+netwidth_d = 256
+multires = 20 
+multires_dir = 20
+batch_size = 200000 
+threshold = 49
+level_set = 0
+load_data_device = cpu 

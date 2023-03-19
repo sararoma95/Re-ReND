@@ -1,0 +1,57 @@
+### INPUT
+dataset_type = tanks_and_temples
+datadir = ./data/tanks_and_temples/tat_intermediate_Playground
+scene = tat_intermediate_Playground
+expname = tat_intermediate_Playground
+basedir = ./data/tanks_and_temples/tat_intermediate_Playground/logs
+config = None
+ckpt_path = None
+no_reload = False
+testskip = 1
+
+### TRAINING
+N_iters = 500001
+N_rand = 1024
+lrate = 0.0005
+lrate_decay_factor = 0.1
+lrate_decay_steps = 50000000
+
+### CASCADE
+cascade_level = 2
+cascade_samples = 64,128
+
+### TESTING
+chunk_size = 8192
+
+### RENDERING
+det = False
+max_freq_log2 = 10
+max_freq_log2_viewdirs = 4
+netdepth = 8
+netwidth = 256
+use_viewdirs = True
+
+
+
+### MODEL
+use_residual = True
+trial.ON = True
+trial.body_arch = resmlp
+hard_ratio = 0.2
+hard_mul = 20
+warmup_lr = 0.00001,200
+netdepth = 88
+netwidth = 256 
+netdepth_d = 88 
+netwidth_d = 256
+multires = 20 
+multires_dir = 20
+batch_size = 200000 
+threshold = 10
+level_set = -0.0008
+load_data_device = cpu 
+net_type = R2L_baking
+
+b_min = -1.0000001,  -0.4, -1.0000001
+b_max = 1.,        0.2, 1.  
+scale = 1

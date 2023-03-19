@@ -14,3 +14,22 @@ Rendering a NeRF using Re-ReND.
 <div align="center">
     <a><img src="figs/Rendering.png"  width="700" ></a>
 </div>
+
+## Reproducing Our Results
+### 0. Download the code
+```
+git clone https://github.com/sararoma95/Re-ReND.git && cd Re-ReND
+```
+### 2. Set up environment with Anaconda
+- `conda create --name Re-ReND python=3.7.13`
+- `conda activate Re-ReND`
+- `pip install -r requirements.txt` 
+- `conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=11.3 -c pytorch`
+- `pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch`
+- `pip install pymeshlab`
+- `pip install PyMCubes`
+- `pip install scikit-fmm`
+- `pip install trimesh`
+- `conda install -c anaconda scikit-image`
+- `pip install lpips`
+- `conda install -c conda-forge pyembree`
