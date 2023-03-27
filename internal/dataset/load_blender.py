@@ -65,6 +65,8 @@ def load_blender_data(basedir, split, half_res=False, testskip=1):
         all_poses.append(poses)
     
     imgs = np.concatenate(all_imgs, 0)
+    # White bg
+    imgs = imgs[..., :3]*imgs[..., -1:] + (1.-imgs[..., -1:])
     poses = np.concatenate(all_poses, 0)
     
     H, W = imgs[0].shape[:2]
@@ -105,6 +107,8 @@ class RaySamplerSingleImage(object):
     def get_rays(self):
             self.rays_o, self.rays_d = get_rays_center(self.H, self.W,
                                                     self.intrinsics, self.c2w_mat)
+            self.rays_o, self.rays_d = self.rays_o.reshape(-1,3), self.rays_d.reshape(-1,3)
+
     def get_img(self):
         if self.img is not None:
             return self.img.reshape((self.H, self.W, 3))
@@ -120,27 +124,17 @@ class RaySamplerSingleImage(object):
         # return torch tensors
         for k in ret:
             if ret[k] is not None:
-                ret[k] = torch.from_numpy(ret[k])
+                ret[k] = torch.from_numpy(np.array(ret[k]))
         return ret
     
 def get_rays_center(H, W, K, c2w):
-    '''
-    :param H: image height
-    :param W: image width
-    :param intrinsics: 4 by 4 intrinsic matrix
-    :param c2w: 4 by 4 camera to world extrinsic matrix
-    :return:
-    '''
-    # pytorch's meshgrid has indexing='ij'
-    i, j = torch.meshgrid(torch.linspace(0, W-1, W), torch.linspace(0, H-1, H))
-    i = i.t()
-    j = j.t()
-    dirs = torch.stack([(i-K[0][2]+0.5)/K[0][0], -(j-K[1][2]+0.5) /
-                       K[1][1], -torch.ones_like(i)], -1)
+    i, j = np.meshgrid(np.arange(W, dtype=np.float32),
+                       np.arange(H, dtype=np.float32), indexing='xy')
+    dirs = np.stack([(i-K[0][2]+0.5)/K[0][0], -(j-K[1][2]+0.5) /
+                    K[1][1], -np.ones_like(i)], -1)
     # Rotate ray directions from camera frame to the world frame
     # dot product, equals to: [c2w.dot(dir) for dir in dirs]
-    rays_d = torch.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)
+    rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)
     # Translate camera frame's origin to the world frame. It is the origin of all rays.
-    rays_o = np.broadcast_to(c2w[:3, -1], rays_d.shape)
+    rays_o = np.broadcast_to(c2w[:3, -1], np.shape(rays_d))
     return rays_o, rays_d
-

@@ -11,7 +11,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def load_test_dataset(args):
     if args.dataset_type == 'blender':
-        dataset = load_blender_data(args.datadir, 'test', half_res=False, testskip=1)
+        dataset = load_blender_data(args.datadir, 'test', half_res=False, testskip=args.testskip)
     elif args.dataset_type == 'tanks_and_temples':
         dataset = load_tandt_data(args.datadir, args.expname, 'test', try_load_min_depth=False)
     return dataset

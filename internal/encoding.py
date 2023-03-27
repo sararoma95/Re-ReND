@@ -133,10 +133,6 @@ class _HashGrid(nn.Module):
 
   def forward(self, x: torch.Tensor):
     # x: (b..., dim), torch.float32, range: [0, 1]
-    # print('no scale: ', x.max(), x.min(), x.shape)
-    # x = (x + 1.267) / (1.167 + 1.267)
-    # print('scale: ', x.max(), x.min())
-    # pdb; pdb.set_trace()
     bdims = len(x.shape[:-1])
     x = x * self.resolution
     xi = x.long()
@@ -144,7 +140,6 @@ class _HashGrid(nn.Module):
     xi = xi.unsqueeze(dim=-2) # (b..., 1, dim)
     xf = xf.unsqueeze(dim=-2) # (b..., 1, dim)
     # to match the input batch shape
-    # pdb.set_trace()
     bin_mask = self.bin_mask.reshape((1,)*bdims + self.bin_mask.shape) # (1..., neig, dim)
     # get neighbors' indices and weights on each dim
     inds = torch.where(bin_mask, xi, xi+1) # (b..., neig, dim)
@@ -155,7 +150,6 @@ class _HashGrid(nn.Module):
     hash_ids = fast_hash(inds, self.primes, self.hashmap_size) # (b..., neig)
     neig_data = self.embedding(hash_ids) # (b..., neig, feat)
     out = torch.sum(neig_data * w, dim=-2) # (b..., feat)
-    # print('out: ', out.max(), out.min(), out.shape)
     return out
 
 class MultiResHashGrid(nn.Module):
@@ -201,8 +195,6 @@ class MultiResHashGrid(nn.Module):
     for level_idx in range(n_levels):
       resolution = math.floor(base_resolution * (b ** level_idx))
       hashmap_size = min(resolution ** dim, 2 ** log2_hashmap_size)
-      # print(b, level_idx, resolution, 'feat num no hash:', resolution ** dim, 'hash feat num:', hashmap_size)
-      # pdb.set_trace()
       levels.append(_HashGrid(
         dim = dim,
         n_features = n_features_per_level,

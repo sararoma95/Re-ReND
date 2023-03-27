@@ -1,12 +1,15 @@
+import os
 import torch
 from os.path import join
 from types import SimpleNamespace
 
 from internal.utils import *
-from internal.config import config_parser
 from internal.mesh import Mesh
-from internal.model import create_nerf
 from internal.train import train
+from internal.config import config_parser
+from internal.model import create_nerf, render
+from internal.textures import export_textures
+from internal.dataset.data import load_test_dataset
 
 if __name__ == "__main__":
     # Seeking for CUDA
@@ -21,7 +24,6 @@ if __name__ == "__main__":
     args.folder = f'exp_lev_{args.level_set}_thr_{args.threshold}' 
 
     if args.train:
-        prBlue('TRAINING Re-ReND')
 
         # Initializing NeRF training
         init_train(args.seed)
@@ -40,11 +42,11 @@ if __name__ == "__main__":
         args.basedir = join(args.basedir + '_' + args.folder, name_wandb(args) + args.name_exp)
         
         # Loading mesh
-        mesh = Mesh(args.mesh_path).mesh
+        mesh = Mesh(args.mesh_path)
         
         # Updating b_min and b_max
-        args.b_max =  torch.Tensor(np.array(mesh.vertices.max(axis=0))).to(device)
-        args.b_min = torch.Tensor(np.array(mesh.vertices.min(axis=0))).to(device)
+        args.b_max =  torch.Tensor(np.array(mesh.mesh.vertices.max(axis=0))).to(device)
+        args.b_min = torch.Tensor(np.array(mesh.mesh.vertices.min(axis=0))).to(device)
            
         # Creating and loading model 
         render_kwargs_train, render_kwargs_test, \
@@ -62,52 +64,36 @@ if __name__ == "__main__":
             start = global_step + 1
         prYellow(f'Starting at {start}')
 
-        # if args.render_only:
-        #     prBlue('RENDER ONLY')
-        #     # Initializing wandb
-        #     init_wandb(args, args, main_dict, args_args, args.project_name+'_test')
-        #     # Creating folder to dump RGB information
-        #     testsavedir = folder_path(args, nerf_1, args, global_step)
-        #     os.makedirs(testsavedir, exist_ok=True)
+        if args.render_only:
+            prBlue('RENDER ONLY')
+            # Initializing wandb
+            init_wandb(args, args.project_name+'_test')
 
-        #     # if args.mesh_parts >0  and args.total_psnr:
+            # Creating folder to dump RGB information
+            testsavedir = folder_path(args, global_step)
+            os.makedirs(testsavedir, exist_ok=True)
 
-        #     if args.total_psnr:
-        #         path_bg  = join(*testsavedir.split('/')[:5], testsavedir.split('/')[5][:-2]+'bg', *testsavedir.split('/')[6:])
-        #         psnr, ssmi, lpips = total_psnr_tandt(args, ps, testsavedir, path_bg)
-        #         if args.with_wandb:
-        #             wblog = {"PSNR": psnr, "SSMI": ssmi, "LPIPS": lpips, "global_step": global_step}
-        #             wandb.log(wblog)
-        #         exit()
-        #     # Rendering video or test images
-        #     psnr, ssmi, lpips = render_imgs(args, nerf_1, args, fn, pe, ps, path=None, video=False, metrics=True)
-        #     prYellow(f'PSNR: {psnr}, SSMI: {ssmi}, LPIPS: {lpips}')
-        #     if args.with_wandb:
-        #         wblog = {"PSNR": psnr, "SSMI": ssmi, "LPIPS": lpips, "global_step": global_step}
-        #         wandb.log(wblog)
-        #     render_imgs(args=args, nerf_1=nerf_1, args=args,
-        #                 fn=fn_test,
-        #                 pe=pe, 
-        #                 ps=ps,
-        #                 path=testsavedir,
-        #                 video=False if args.render_test else True)
-        #     prYellow(f'Done Rendering: {testsavedir}')
-        #     exit()
+            # Rendering test images and collecting metrics
+            dataset = load_test_dataset(args)
+            psnr, ssmi, lpips = render(dataset, mesh, fn_test, path=None, metrics=True)
+            prYellow(f'PSNR: {psnr}, SSMI: {ssmi}, LPIPS: {lpips}')
+            if args.with_wandb:
+                wblog = {"PSNR": psnr, "SSMI": ssmi, "LPIPS": lpips, "global_step": global_step}
+                wandb.log(wblog)
+            render(dataset, mesh, fn_test, path=testsavedir, metrics=False)
+            prYellow(f'Done Rendering: {testsavedir}')
+            exit()
 
-        # if args.exporting_features:
-        #     prBlue('EXPORTING FEATURES-TEXTURE')
-        #     if args.train_bg:
-        #         mesh_in_path = args.mesh_path_bg
-        #     else:
-        #         mesh_in_path = args.mesh_path_fg
+        if args.export_textures:
+            prBlue('EXPORTING FEATURES-TEXTURES')
+            
+            # Creating folder to seek mesh and dump texture and MLP
+            out_path = folder_path(args, global_step)
+            os.makedirs(join(*out_path.split('/')[:-1]), exist_ok=True)
 
-        #     # Creating folder to seek mesh and dump texture and MLP
-        #     out_path = folder_path(args, nerf_1, args, global_step)
-        #     os.makedirs(join(*out_path.split('/')[:-1]), exist_ok=True)
-
-        #     # Expoting features: mlp and textures
-        #     exporting_features(args, args, fn_test, out_path, mesh_in_path, pe, ps) 
-        #     exit()
+            # Expoting features: mlp and textures
+            export_textures(args, fn_test, out_path, mesh) 
+            exit()
         # if args.quantized_psnr:
         #     init_wandb(args, args, main_dict, args_args, args.project_name+'_quanTest')
         #     prBlue('COMPUTE QUANTIZED PSNR')
@@ -132,11 +118,10 @@ if __name__ == "__main__":
         #         wblog = {"PSNR": psnr, "SSMI": ssmi, "LPIPS": lpips, "global_step": global_step}
         #         wandb.log(wblog)
         #     exit()
+
+        prBlue('TRAINING Re-ReND')
         # Initializing wandb
         init_wandb(args, args.project_name)
-
-        
-        # import pdb; pdb.set_trace()
 
         # Hard ratio weights array or a float
         if args.hard_ratio != '':
@@ -146,7 +131,7 @@ if __name__ == "__main__":
                 args.hard_ratio = [
                     float(x) for x in args.hard_ratio.split(',')
                 ]
-        if args.hard_ratio: hard_rays = torch.Tensor([])
+        if args.hard_ratio: hard_rays = torch.Tensor([]).to(device)
 
 
         # Training loop

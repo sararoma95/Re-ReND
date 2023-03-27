@@ -85,7 +85,7 @@ def create_nerf(args):
     return render_kwargs_train, render_kwargs_test, start, grad_vars, optimizer
 
 def render(dataset, mesh, fn, path=None, metrics=False):
-    H, W = dataset.H, dataset.W
+    
     if path is None:
         psnr, total_loss = [], []
         name_bar = 'PSNR'
@@ -98,14 +98,17 @@ def render(dataset, mesh, fn, path=None, metrics=False):
         
 
     for l in trange(0, len(dataset), desc=name_bar, colour=color_bar):
+        H, W = dataset[l].H, dataset[l].W
         rays = dataset[l].get_all()
-        gt_img = dataset[l].get_img()
+        gt_img = torch.Tensor(dataset[l].get_img()).to(device)
         rays_o, rays_d = rays['ray_o'], rays['ray_d']
-        pts, idx_ray, vtx, idx_tri  = mesh.intersected_points(rays_o, rays_d)
+        pts, idx_ray, _, _  = mesh.intersected_points(rays_o, rays_d)
         
         
         with torch.no_grad():
-            rgb_total_train = fn(pts, dir[idx_ray])
+            pts = torch.Tensor(pts).to(device)
+            rays_d = rays_d[idx_ray].to(device)
+            rgb_total_train = fn(pts, rays_d)
            
         mask = torch.ones((H, W, 3)).reshape((-1, 3))
         mask[idx_ray] = rgb_total_train

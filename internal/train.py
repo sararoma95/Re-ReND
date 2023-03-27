@@ -7,8 +7,8 @@ from tqdm import tqdm, trange
 import torch.nn.functional as F
 
 from .utils import *
-from .dataset.data import load_test_dataset, load_train_dataset
 from .model import render
+from .dataset.data import load_test_dataset, load_train_dataset
 
 
 def train(args, start, global_step,  optimizer, fn, fn_test, hard_rays, mesh):
@@ -49,7 +49,7 @@ def train(args, start, global_step,  optimizer, fn, fn_test, hard_rays, mesh):
                                       pts, dir, rgb_gt, faceid)
 
             # Forward the model
-            output = output = fn(pts, dir)
+            output = fn(pts, dir)
 
             # Zero out the optimizer to not accumulate gradients
             optimizer.zero_grad()
@@ -115,7 +115,8 @@ def train(args, start, global_step,  optimizer, fn, fn_test, hard_rays, mesh):
             # Increase global step by 1
             global_step += 1
 
-            # Empty cache to avoid memory issues with mo
-            del dataset_train
-            file += args.num_files
-            torch.cuda.empty_cache()
+        # Empty cache to avoid memory issues with mo
+        del dataset_train
+        file += args.num_files
+        torch.cuda.empty_cache()
+

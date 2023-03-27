@@ -1,7 +1,10 @@
+import json
 import wandb
 import torch
 import random
 import numpy as np
+from PIL import Image
+from os.path import join
 
 from torchmetrics import StructuralSimilarityIndexMeasure
 from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
@@ -10,6 +13,7 @@ lpips = LearnedPerceptualImagePatchSimilarity(net_type='vgg')
 ssim = StructuralSimilarityIndexMeasure(data_range=1.0)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 def prCyan(s):
     print("\033[96m\033[1m {}\033[00m".format(s))
@@ -34,6 +38,25 @@ def mse2psnr(x):
 def to8b(x):
     return (255 * np.clip(x, 0, 1)).astype(np.uint8)
 
+def save_img(img, path, name = "texture"):
+    # store image in disk
+    name = f'{name}.png'
+    Image.fromarray(to8b(img)).save(join(path, name))
+
+def save_min_max(min_uvw, max_uvw, min_b, max_b, out_path):
+    path = join(*out_path.split('/')[:-1])
+    minmax = {}
+    minmax['min_u'] = min_uvw[..., 0].tolist()
+    minmax['min_v'] = min_uvw[..., 1].tolist()
+    minmax['min_w'] = min_uvw[..., 2].tolist()
+    minmax['min_b'] = min_b.detach().cpu().numpy().tolist()
+    minmax['max_u'] = max_uvw[..., 0].tolist()
+    minmax['max_v'] = max_uvw[..., 1].tolist()
+    minmax['max_w'] = max_uvw[..., 2].tolist()
+    minmax['max_b'] = max_b.detach().cpu().numpy().tolist()
+    with open(join(join(*out_path.split('/')[:-1]), 'minmax.json'), 'w') as write_file:
+        json.dump(minmax, write_file, indent=4)
+    prYellow(f'Saved point features at {path}')
 
 def init_train(seed):
     torch.manual_seed(seed)
@@ -43,12 +66,12 @@ def init_train(seed):
     np.random.seed(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
+    torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
 
 def name_wandb(args):
     obj = args.expname.split('_')[-1]
-    namejob = '{}_hash.{}.{}_comp.{}'.format(
-        obj, args.n_levels, args.n_features_per_level, args.components)
+    namejob = 'Re-ReND_{}'.format(obj)
     return namejob
 
 
@@ -59,6 +82,19 @@ def init_wandb(args, project_name):
         wandb.config.update(args)
     else:
         wandb.init(project="Re-ReND", name=args.expname, mode='disabled')
+
+
+def folder_path(args, start):
+    if args.render_only or args.quantized_psnr:
+        name = f'renderonly_{start:06d}'
+        path = join(args.basedir, args.expname, name)
+        return path
+    elif args.export_textures:
+        name = join(args.basedir.split('/')[-3])
+        name = f'{name}.obj'
+        path = join(args.basedir, f'meshes_textures_{args.tri_size}', name)
+    return path
+
 
 def hard_rays_fn(args, batch_size):
     if isinstance(args.hard_ratio, list):
@@ -95,7 +131,7 @@ def collect_hard_rays_fn(batch_size, output, n_hard_in, pts, dir, rgb_gt,
         pts[hard_indices], dir[hard_indices], rgb_gt[hard_indices],
         faceid[hard_indices]
     ],
-                           dim=-1)
+        dim=-1)
     return hard_rays_
 
 
@@ -120,14 +156,60 @@ def chunks(data, k, batch_size):
     id = data[k:k + batch_size, 9:].to(device)
     return pts, dir, gt, id
 
+
 def ssim_fn(img, gt):
-    return ssim(img[None,...].permute(0,3,1,2).cpu(), gt[None,...].permute(0,3,1,2).cpu())
+    return ssim(img[None, ...].permute(0, 3, 1, 2).cpu(), gt[None, ...].permute(0, 3, 1, 2).cpu())
+
 
 def lpips_fn(img, gt):
-    return lpips(img[None,...].permute(0,3,1,2).cpu(), gt[None,...].permute(0,3,1,2).cpu())
+    return lpips(img[None, ...].permute(0, 3, 1, 2).cpu(), gt[None, ...].permute(0, 3, 1, 2).cpu())
+
 
 def ssim_fn_bz(img, gt):
-    return ssim(img.permute(0,3,1,2).cpu(), gt.permute(0,3,1,2).cpu())
+    return ssim(img.permute(0, 3, 1, 2).cpu(), gt.permute(0, 3, 1, 2).cpu())
+
 
 def lpips_fn_bz(img, gt):
-    return lpips(img.permute(0,3,1,2).cpu(), gt.permute(0,3,1,2).cpu())
+    return lpips(img.permute(0, 3, 1, 2).cpu(), gt.permute(0, 3, 1, 2).cpu())
+
+
+def spherical_to_cartesian(ear):
+    elev, azim, r = ear[..., 0], ear[..., 1], ear[..., 2]
+    x = r * torch.cos(elev) * torch.cos(azim)
+    y = r * torch.cos(elev) * torch.sin(azim)
+    z = r * torch.sin(elev)
+    return torch.stack([x, y, z], dim=-1)
+
+
+def grid_direction(num_sample_elev, num_sample_azim):
+    # Creating uniform sampling in spherical coords.
+    elev = torch.linspace(0, 360, num_sample_elev)
+    azim = torch.linspace(0, 360, num_sample_azim)
+    xy, yx = torch.meshgrid(elev, azim)
+
+    # From degrees to radians
+    xy = torch.deg2rad(xy).reshape(-1)
+    yx = torch.deg2rad(yx).reshape(-1)
+
+    # From Spherical Coords. to Cartesian Coords.
+    ear = torch.stack((xy, yx, torch.ones_like(yx)), dim=-1)
+    # .reshape(num_sample_elev, num_sample_azim,3)
+    return spherical_to_cartesian(ear)
+
+def quantize_dir(features):
+    min = features.view(-1, features.shape[-1]).min(0)[0]
+    features = features - min
+    max = features.view(-1, features.shape[-1]).max(0)[0]
+    features = features / max
+    return features, min, max
+
+
+def mosaic_dir(features):
+    # Transforming image in a mosaic
+    elevation, azimuth = features.shape[0], features.shape[1]
+    col = 4 # 4 columns of featurs maps
+    rgba = 4 # only 4 channels ina PNG
+    features = torch.stack(torch.split(features, rgba, dim=-1))
+    features = features.permute(1, 0, 2, 3).reshape(elevation, -1, rgba)
+    features = torch.cat(features.split(col * azimuth, dim=1), dim=0)
+    return features
