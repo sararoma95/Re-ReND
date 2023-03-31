@@ -9,6 +9,23 @@ from internal.mesh import Mesh, Geometry
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+def quantize_dir(features):
+    min = features.view(-1, features.shape[-1]).min(0)[0]
+    features = features - min
+    max = features.view(-1, features.shape[-1]).max(0)[0]
+    features = features / max
+    return features, min, max
+
+
+def mosaic_dir(features):
+    # Transforming image in a mosaic
+    elevation, azimuth = features.shape[0], features.shape[1]
+    col = 4 # 4 columns of featurs maps
+    rgba = 4 # only 4 channels ina PNG
+    features = torch.stack(torch.split(features, rgba, dim=-1))
+    features = features.permute(1, 0, 2, 3).reshape(elevation, -1, rgba)
+    features = torch.cat(features.split(col * azimuth, dim=1), dim=0)
+    return features
 
 def direction_textures(model, path, num_sample_elev, num_sample_azim):
     chunk = 2000000

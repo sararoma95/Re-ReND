@@ -85,7 +85,7 @@ def init_wandb(args, project_name):
 
 
 def folder_path(args, start):
-    if args.render_only or args.quantized_psnr:
+    if args.render_only:
         name = f'renderonly_{start:06d}'
         path = join(args.basedir, args.expname, name)
         return path
@@ -93,6 +93,9 @@ def folder_path(args, start):
         name = join(args.basedir.split('/')[-3])
         name = f'{name}.obj'
         path = join(args.basedir, f'meshes_textures_{args.tri_size}', name)
+    elif args.compute_metrics:
+        name = f'quantized_{args.tri_size}'
+        path = join(args.basedir, args.expname, name)
     return path
 
 
@@ -196,20 +199,42 @@ def grid_direction(num_sample_elev, num_sample_azim):
     # .reshape(num_sample_elev, num_sample_azim,3)
     return spherical_to_cartesian(ear)
 
-def quantize_dir(features):
-    min = features.view(-1, features.shape[-1]).min(0)[0]
-    features = features - min
-    max = features.view(-1, features.shape[-1]).max(0)[0]
-    features = features / max
-    return features, min, max
+def read_png(args, path, min, max, list_feat):
+    uvw = []
+    for i, ft in enumerate(list_feat):
+        feat = Image.open(
+            join(path, f'meshes_textures_{args.tri_size}', f'feat_{ft}.png'))
+        feat = reorganized(feat, col=4, row=args.components/4/4)
+        uvw.append(unquantize(feat, min[:, i], max[:, i]))
+    return np.stack(uvw, axis=-1)
 
+def reorganized(feat, col, row):
+    feat = np.split(np.array(feat), col, axis=1)
+    feat = np.dstack(feat)
+    feat = np.split(feat, row, axis=0)
+    return np.dstack(feat)
 
-def mosaic_dir(features):
-    # Transforming image in a mosaic
-    elevation, azimuth = features.shape[0], features.shape[1]
-    col = 4 # 4 columns of featurs maps
-    rgba = 4 # only 4 channels ina PNG
-    features = torch.stack(torch.split(features, rgba, dim=-1))
-    features = features.permute(1, 0, 2, 3).reshape(elevation, -1, rgba)
-    features = torch.cat(features.split(col * azimuth, dim=1), dim=0)
-    return features
+def unquantize(feat, min, max):
+    feat = feat / 255
+    feat = feat * max
+    feat = feat + min
+    return feat
+
+def read_minmax(args):
+    prYellow('Reading max and min')
+    path_dir = join(args.basedir, f'meshes_textures_{args.tri_size}',
+                    'minmax.json')
+    f = open(path_dir)
+    minmax = json.load(f)
+    min_u = np.array(minmax['min_u'])
+    min_v = np.array(minmax['min_v'])
+    min_w = np.array(minmax['min_w'])
+    min_b = np.array(minmax['min_b'])[:, None]
+    max_u = np.array(minmax['max_u'])
+    max_v = np.array(minmax['max_v'])
+    max_w = np.array(minmax['max_w'])
+    max_b = np.array(minmax['max_b'])[:, None]
+    min_uvw = np.stack([min_u, min_v, min_w], axis=-1)
+    max_uvw = np.stack([max_u, max_v, max_w], axis=-1)
+    return min_uvw, max_uvw, min_b, max_b
+

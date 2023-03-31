@@ -33,3 +33,8 @@ git clone https://github.com/sararoma95/Re-ReND.git && cd Re-ReND
 - `conda install -c anaconda scikit-image`
 - `pip install lpips`
 - `conda install -c conda-forge pyembree`
+
+### 2. Download data for Re-ReND
+We extract 10k images and a mesh for each scene from MipNeRF and NeRF++ for synthetic dataset and Tanks & Temples dataset, repectevely.
+You can download them [here](https://drive.google.com/drive/folders/1FZPRaU7w9S0aaBSUpyYHUUeHTJ68gJqD?usp=share_link)  
+Note that each scene is ~120GB. 

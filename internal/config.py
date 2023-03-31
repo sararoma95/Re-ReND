@@ -128,7 +128,6 @@ def config_parser():
     # Texture exportation
     parser.add_argument("--export_textures", action='store_true')
     parser.add_argument('--tri_size', type=int, default=6)
-    parser.add_argument('--features_size', type=int, default=4)
     parser.add_argument("--num_sample_elev", type=int, default=1024)
     parser.add_argument("--num_sample_azim", type=int, default=1024)
 
@@ -139,8 +138,7 @@ def config_parser():
     parser.add_argument("--batch_size", type=int, default=200000)
 
     # Testing
-    parser.add_argument("--total_psnr", action='store_true')
-    parser.add_argument("--quantized_psnr", action='store_true')
+    parser.add_argument("--compute_metrics", action='store_true')
     parser.add_argument("--render_only", action='store_true',
                         help='do not optimize, reload weights and render out render_poses path')
 
