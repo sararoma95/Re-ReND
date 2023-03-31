@@ -74,3 +74,6 @@ Note that you should put the meshes+textures of the chair model in a folder chai
 Please allow some time for the scenes to load. Use left mouse button to rotate, right mouse button to pan (especially for forward-facing scenes), and scroll wheel to zoom. On phones, Use you fingers to rotate or pan or zoom. Resize the window (or landscape<->portrait your phone) to show the resolution.
 
 Based on MobileNeRF github.
+
+### Note: Create the data by yourself
+The scripts to extract the data are also provided for this especif implementations. Feel free to recreate the data by yourself.
