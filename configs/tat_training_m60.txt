@@ -10,26 +10,11 @@ no_reload = False
 testskip = 1
 
 ### TRAINING
-N_iters = 500001
-N_rand = 1024
-lrate = 0.0005
-lrate_decay_factor = 0.1
-lrate_decay_steps = 50000000
+lrate_decay = 500
 
-### CASCADE
-cascade_level = 2
-cascade_samples = 64,128
 
-### TESTING
-chunk_size = 8192
-
-### RENDERING
-det = False
-max_freq_log2 = 10
-max_freq_log2_viewdirs = 4
-netdepth = 8
-netwidth = 256
-use_viewdirs = True
+b_max = 1.2, 1.2, 1.2
+b_min = -1.2, -1.2, -1.2
 
 
 ### MODEL
@@ -49,8 +34,7 @@ batch_size = 200000
 threshold = 10
 level_set = -0.0008
 load_data_device = cpu 
-net_type = R2L_baking
+
 
 b_min = -1, -0.32, -1   
 b_max = 1, 0.2, 1
-scale = 1

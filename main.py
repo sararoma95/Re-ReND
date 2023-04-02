@@ -40,6 +40,20 @@ if __name__ == "__main__":
     # Updating basedir
     args.basedir = join(args.basedir + '_' + args.folder,
                         name_wandb(args) + args.name_exp)
+    if args.create_mesh:
+        prBlue('CREATING MESH')
+
+        # Creating mesh from NeRF 1
+        Mesh(args.mesh_path,
+            args=args,
+            resolution=args.resolution,
+            threshold=args.threshold,
+            level_set=args.level_set,
+            num_comp=args.num_comp,
+            from_file=args.from_file)
+
+        prYellow(f'Mesh exported to {args.mesh_path}')
+        exit()
 
     # Loading mesh
     mesh = Mesh(args.mesh_path)
@@ -60,6 +74,7 @@ if __name__ == "__main__":
             wblog = {"PSNR": psnr, "SSMI": ssmi, "LPIPS": lpips}
             wandb.log(wblog)
         exit()
+        
     # Updating b_min and b_max
     args.b_max = torch.Tensor(
         np.array(mesh.mesh.vertices.max(axis=0))).to(device)

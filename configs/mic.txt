@@ -3,25 +3,12 @@ basedir = data/nerf_synthetic/mic/logs
 datadir = data/nerf_synthetic/mic
 dataset_type = blender
 
-no_batching = True
 
-use_viewdirs = True
-white_bkgd = True
 lrate_decay = 500
-
-N_samples = 64
-N_importance = 128
-N_rand = 1024
-
-precrop_iters = 500
-precrop_frac = 0.5
-
-half_res = True
-
 
 b_max = 1.2, 1.2, 1.2
 b_min = -1.5, -1.2, -1.2
-scale = 1.5
+
 ### MODEL
 use_residual = True
 trial.ON = True
@@ -39,4 +26,3 @@ batch_size = 200000
 threshold = 22
 level_set = 0
 load_data_device = cpu 
-net_type = R2L_baking

@@ -50,3 +50,27 @@ def load_train_dataset(path, num_files, file=0, device='cpu'):
 
     prYellow(f'Loading took {time.time() - start_time}')
     return data
+
+def divide_data(path_in, path_out, mesh):
+    prYellow(f'Data come from {path_in} to {path_out}')
+    os.makedirs(path_out, exist_ok=True)
+    files = sorted(glob(join(path_in, '*.pt')))
+    
+    for fl in files:
+        prYellow(fl)
+        # Loading pseudo data
+        data = torch.load(fl, map_location=torch.device('cpu'))
+        
+        #Obtain rays origins and directions
+        rays_o, rays_d= data[...,:3].numpy(), data[...,3:6].numpy()
+        
+        # Calculate intersected point in fg mesh 
+        pts, idx_ray, _, faceid = mesh.intersected_points(rays_o, rays_d)
+
+        pts = torch.Tensor(pts)
+        faceid = torch.Tensor(faceid)
+
+        data_fg = torch.cat((pts, data[idx_ray, 3:].cuda(), faceid[...,None]), dim=1)
+
+        # Save intersected points
+        torch.save(data_fg, join(path_out, fl.split('/')[-1]))

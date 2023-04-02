@@ -22,8 +22,8 @@ class Mesh:
         self.mesh_path = mesh_path
 
         # Create mesh
-        if 'model' in kwargs:
-            self._create_mesh(args.model, args.resolution, args.threshold,
+        if 'args' in kwargs:
+            self._create_mesh(args, args.resolution, args.threshold,
                               args.level_set, args.num_comp, args.from_file)
 
         # Load the mesh
@@ -77,12 +77,12 @@ class Mesh:
             (b_max_np - b_min_np)[None, :] + b_min_np[None, :]
         return vertices, triangles
 
-    def _create_mesh(self, model, resolution, threshold, level_set, num_comp, from_file):
+    def _create_mesh(self, args, resolution, threshold, level_set, num_comp, from_file):
         # Getting bounds of the scene
 
-        b_min = model.b_min[0].split(',')
+        b_min = args.b_min[0].split(',')
         b_min = [float(b_min[0]), float(b_min[1]), float(b_min[2])]
-        b_max = model.b_max[0].split(',')
+        b_max = args.b_max[0].split(',')
         b_max = [float(b_max[0]), float(b_max[1]), float(b_max[2])]
         prCyan(f'b_max: {b_max}, b_min: {b_min}')
     
