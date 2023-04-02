@@ -21,19 +21,9 @@ Rendering a NeRF using Re-ReND.
 git clone https://github.com/sararoma95/Re-ReND.git && cd Re-ReND
 ```
 ### 1. Set up environment with Anaconda
-- `conda create --name Re-ReND python=3.7.13`
-- `conda activate Re-ReND`
-- `pip install -r requirements.txt` 
-- `conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=11.3 -c pytorch`
-- `pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch`
-- `pip install pymeshlab`
-- `pip install PyMCubes`
-- `pip install scikit-fmm`
-- `pip install trimesh`
-- `conda install -c anaconda scikit-image`
-- `pip install lpips`
-- `conda install -c conda-forge pyembree`
-
+```bash
+conda env create -f environment.yml
+```
 ### 2. Download data for Re-ReND
 We extract 10k images and a mesh for each scene of the *Blender Synthetic dataset* and the *Tanks & Temples dataset* from [MipNeRF](https://github.com/google/mipnerf) and [NeRF++](https://github.com/Kai-46/nerfplusplus), respectively.
 You can download them [here](https://drive.google.com/drive/folders/1FZPRaU7w9S0aaBSUpyYHUUeHTJ68gJqD?usp=share_link).
@@ -62,7 +52,7 @@ The instructions to use are inside the folder <code>viewer</code>.
 
 ### Note: Create the data by yourself
 The scripts to extract the data are also provided for this specific implementations. Feel free to recreate the data by yourself.
-The scrips to use are inside the folder <code>nerf</code>.
+The scrips to use are inside the folder <code>extract_data</code>.
 
 ## Citation
 ```

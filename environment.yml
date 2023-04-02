@@ -1,0 +1,36 @@
+name: Re-ReND
+dependencies:
+- python==3.7.13
+- pytorch==1.11.0
+- torchvision==0.12.0
+- torchaudio==0.11.0
+- cudatoolkit=11.3
+- embree=2.17.7
+- pyembree=0.1.6
+- pip
+- anaconda
+- pip:
+  - pymeshlab
+  - PyMCubes==0.1.2
+  - scikit-fmm==2022.3.26
+  - trimesh==3.12.9
+  - lpips==0.1.4
+  - wandb
+  - torchmetrics==0.10.1
+  - PyYAML==5.4.1
+  - Pillow==9.0.1
+  - scikit-image=0.19.3
+  - scikit_learn==0.24.2
+  - numpy==1.22
+  - opencv-python==4.5.3.56
+  - tqdm==4.61.2
+  - configargparse==1.5.1
+  - matplotlib==3.4.2
+  - imageio-ffmpeg==0.4.7
+  - imageio==2.9.0
+  - git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
+channels:
+  - pytorch
+  - anaconda
+  - conda-forge
+  - defaults
