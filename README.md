@@ -35,7 +35,7 @@ git clone https://github.com/sararoma95/Re-ReND.git && cd Re-ReND
 - `conda install -c conda-forge pyembree`
 
 ### 2. Download data for Re-ReND
-We extract 10k images and a mesh for each scene of the *Blender Synthetic dataset* and the *Tanks & Temples dataset* from MipNeRF and NeRF++, respectively.
+We extract 10k images and a mesh for each scene of the *Blender Synthetic dataset* and the *Tanks & Temples dataset* from [MipNeRF](https://github.com/google/mipnerf) and [NeRF++](https://github.com/Kai-46/nerfplusplus), respectively.
 You can download them [here](https://drive.google.com/drive/folders/1FZPRaU7w9S0aaBSUpyYHUUeHTJ68gJqD?usp=share_link).
 Note that each scene is large (~120GB).
 
