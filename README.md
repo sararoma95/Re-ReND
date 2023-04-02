@@ -42,7 +42,7 @@ Note that each scene is large (~120GB).
 
 3. Finally, put datasets from *2.* inside of <code>data</code> folder (to create it <code>mkdir data</code>). Place the scene from *1.* in *2.*. E.g. <code>/data/nerf_synthetic/chair/logs_exp_lev_0.0_thr_49.0/blender_paper_chair_*.pt</code>. 
 
-    - Note that in <code>logs_exp_lev_0.0_thr_49.0</code> folder <code>lev</code> and <code>thr</code> means the mesh's level set and threshold used. To obtain that information you can check <code>configs/scene.txt</code> or when downloding, you will see a <code>meshes</code> folder with a mesh file named like <code>lev_0.0_thr_49.0_blender_paper_chair.ply</code>.  
+    Note that in <code>logs_exp_lev_0.0_thr_49.0</code> folder <code>lev</code> and <code>thr</code> means the mesh's level set and threshold used. To obtain that information you can check <code>configs/scene.txt</code> or when downloding, you will see a <code>meshes</code> folder with a mesh file named like <code>lev_0.0_thr_49.0_blender_paper_chair.ply</code>.  
 ### 3. Training
 We train on an A100 GPU for 2.5 days to reach 380k iterations for synthetic scenes and 1 day to reach 150k iters for Tanks & Temples scenes.
 ```bash
