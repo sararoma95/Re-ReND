@@ -70,7 +70,7 @@ python main.py --config configs/chair.txt --compute_metrics
 The viewer code is provided in this repo, as four .html files for two types of datasets.
 The instructions to use are inside the folder <code>viewer</code>.
 ### Pretrained models
-[Here](https://drive.google.com/drive/folders/1SCfVtbCho35VyT0SKwm7mU6Os0WJXfPx?usp=share_link) you cana download the pretrained models.
+[Here](https://drive.google.com/drive/folders/1SCfVtbCho35VyT0SKwm7mU6Os0WJXfPx?usp=share_link) you can download the pretrained models.
 ### Note: Create the data by yourself
 The scripts to extract the data are also provided for this specific implementations. Feel free to recreate the data by yourself.
 The scrips to use are inside the folder <code>extract_data</code>.
