@@ -10,7 +10,7 @@ After training and keeping their enviroments. You should do this.
 
 4. To extract the grid of densities, you should run:
 ```
-sh scripts/extract_grid.sh -u chair
+sh scripts/extract_grid.sh -u SCENE
 ```
 5. To extract the 500 images, you should run:
 ```

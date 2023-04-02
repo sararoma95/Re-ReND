@@ -48,7 +48,7 @@ echo $SEED
 TRAIN_DIR=/ibex/ai/home/rojass/mipnerf-pytorch/data/nerf_synthetic/nerf_results_mipnerf/$SCENE
 DATA_DIR=/ibex/ai/home/rojass/albert/data/nerf_synthetic/$SCENE
 
-python -m grid \
+python -m extract_grid_mipnerf \
   --data_dir=$DATA_DIR \
   --train_dir=$TRAIN_DIR \
   --chunk=3076 \
