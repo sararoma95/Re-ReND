@@ -1,6 +1,8 @@
 # Extract data from Neural Radiance fields
 You will have to download [MipNeRF](https://github.com/google/mipnerf) and [NeRF++](https://github.com/Kai-46/nerfplusplus) and train their models.
 After training and keeping their enviroments. You should do this.
+
+[Here](https://drive.google.com/drive/folders/1bqp7a-ipvPkFIu5II7xDN0UFoZscToCW?usp=share_link) you can download the pretrained models for both repositories.
 ## [MipNeRF](https://github.com/google/mipnerf)
 1. Put inside <code>scripts</code> folder the following scripts <code>extract_imgs.sh</code> and <code>extract_grid.sh</code>
 2. Change *TRAIN_DIR* and *DATA_DIR* in <code>extract_imgs.sh</code> and <code>extract_grid.sh</code>
