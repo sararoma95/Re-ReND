@@ -58,7 +58,7 @@ python main.py --config configs/chair.txt --compute_metrics
 ```
 ### 6. Running the viewer
 The viewer code is provided in this repo, as three .html files for two types of datasets.
-The isntruction to use are inside the folder viewer.
+The instructions to use are inside the folder viewer.
 
 ### Note: Create the data by yourself
 The scripts to extract the data are also provided for this specific implementations. Feel free to recreate the data by yourself.
