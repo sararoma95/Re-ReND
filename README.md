@@ -77,3 +77,11 @@ Based on MobileNeRF github.
 
 ### Note: Create the data by yourself
 The scripts to extract the data are also provided for this especif implementations. Feel free to recreate the data by yourself.
+
+## Citation
+@article{rojas2023rerend,
+  title={{R}e-{R}e{ND}: {R}eal-time {R}endering of {N}e{RF}s across {D}evices},
+  author={Rojas, Sara and Zarzar, Jesus and {P{\'e}rez}, Juan C. and Sanakoyeu, Artsiom and Thabet, Ali and Pumarola, Albert and Ghanem, Bernard},
+  journal={arXiv preprint arXiv:2303.08717},
+  year={2023}
+}
