@@ -8,11 +8,15 @@ After training and keeping their enviroments. You should do this.
 2. Change *TRAIN_DIR* and *DATA_DIR* in <code>extract_imgs.sh</code> and <code>extract_grid.sh</code>
 3. Change in the <code>internal</code> folder the <code>utils.py</code> script with the one provided.
 
-4. To extract the grid of densities, you should run:
+4. To extract the grid of densities and the mesh, you should run:
 ```
 sh scripts/extract_grid.sh -u SCENE
 ```
-5. To extract the 500 images, you should run:
+5. To extract the mesh from the density grid, you will have to use <code>--from_file</code> for the path of the grid of densities.
+```
+python main.py --config configs/chair.txt    --create_mesh  --from_file {PATH}/chair.npy      --threshold 49  --level_set 0.0      --resolution 512
+```
+6. To extract the 500 images, you should run:
 ```
 sh scripts/extract_imags.sh -u SCENE -c SEED
 ```
