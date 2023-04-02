@@ -22,8 +22,8 @@ class Mesh:
         self.mesh_path = mesh_path
 
         # Create mesh
-        if 'args' in kwargs:
-            self._create_mesh(args, args.resolution, args.threshold,
+        if 'from_file' in kwargs:
+            self._create_mesh(args.b_min, args.b_max, args.resolution, args.threshold,
                               args.level_set, args.num_comp, args.from_file)
 
         # Load the mesh
@@ -52,21 +52,19 @@ class Mesh:
 
     def extract_geometry(self, bound_min, bound_max, resolution, threshold, level_set, from_file):
         prYellow(f'threshold: {threshold}, level_set: {level_set}')
-
+        bound_max = np.array(bound_max)
+        bound_min = np.array(bound_min)
         # Extracting the estimated density of a point grid cube within scene bounds
         if from_file is None:
             assert 'no grid of densities'
         else:
             u = np.load(from_file)
 
-        b_max_np = bound_max.detach().cpu().numpy()
-        b_min_np = bound_min.detach().cpu().numpy()
-
         # Extracting mesh
         if level_set != 0:
             # Extracting the inflated mesh according a distance by using SDF
             u = skfmm.distance(u - threshold,
-                               dx=((b_max_np - b_min_np) / resolution))
+                               dx=((bound_max - bound_min) / resolution))
             vertices, triangles = mcubes.marching_cubes(u, level_set)
         else:
             # Extracting directly the mesh according to a threshold
@@ -74,15 +72,15 @@ class Mesh:
 
         # Scaling vertices according scene bounds and resolution.
         vertices = vertices / (resolution - 1.0) * \
-            (b_max_np - b_min_np)[None, :] + b_min_np[None, :]
+            (bound_max - bound_min)[None, :] + bound_min[None, :]
         return vertices, triangles
 
-    def _create_mesh(self, args, resolution, threshold, level_set, num_comp, from_file):
+    def _create_mesh(self, b_min, b_max, resolution, threshold, level_set, num_comp, from_file):
         # Getting bounds of the scene
 
-        b_min = args.b_min[0].split(',')
+        b_min = b_min[0].split(',')
         b_min = [float(b_min[0]), float(b_min[1]), float(b_min[2])]
-        b_max = args.b_max[0].split(',')
+        b_max = b_max[0].split(',')
         b_max = [float(b_max[0]), float(b_max[1]), float(b_max[2])]
         prCyan(f'b_max: {b_max}, b_min: {b_min}')
     

@@ -43,9 +43,10 @@ if __name__ == "__main__":
     if args.create_mesh:
         prBlue('CREATING MESH')
 
-        # Creating mesh from NeRF 1
+        # Creating mesh from NeRF
         Mesh(args.mesh_path,
-            args=args,
+            b_min=args.b_min,
+            b_max=args.b_max,
             resolution=args.resolution,
             threshold=args.threshold,
             level_set=args.level_set,
@@ -74,7 +75,7 @@ if __name__ == "__main__":
             wblog = {"PSNR": psnr, "SSMI": ssmi, "LPIPS": lpips}
             wandb.log(wblog)
         exit()
-        
+
     # Updating b_min and b_max
     args.b_max = torch.Tensor(
         np.array(mesh.mesh.vertices.max(axis=0))).to(device)
