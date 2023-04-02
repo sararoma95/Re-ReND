@@ -3,11 +3,11 @@ The viewer code is provided in this repo, as four <code>.html</code> files for t
 You can set up a local server on your machine, e.g.,
 ```
 cd folder_containing_the_html
-python -m http.server -p 8080
+python -m http.server 8080
 ```
 Then open
 ```
-localhost:8000/free_syn.html?obj=chair&qs6&ntex8
+localhost:8080/free_syn.html?obj=chair&qs=6&ntex=8
 ```
 Note that you should put the *UVWB textures*, *minmax.json* and *.obj* inside of <code>obj_name + "/meshes_textures_" + tri_size + "_" + num_textures</code> folder. The folder should be in the same directory as the html file.
 
