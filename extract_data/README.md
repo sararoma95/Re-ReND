@@ -17,7 +17,7 @@ sh scripts/extract_grid.sh -u SCENE
 ```
 python main.py --config configs/chair.txt    --create_mesh  --from_file {PATH}/chair.npy      --threshold 49 
 ```
-### Extract the 10k imgs
+### Extract images
 6. To extract the 500 images, you should run:
 ```
 sh scripts/extract_imags.sh -u SCENE -c SEED
