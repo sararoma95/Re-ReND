@@ -40,7 +40,7 @@ You can download them [here](https://drive.google.com/drive/folders/1FZPRaU7w9S0
 Note that each scene is large (~120GB).
 
 ### 3. Training
-We train on an A100 GPU for 2.5 days to reach 380k iterations. However, training for 1 day is enough to obtain good results. 
+We train on an A100 GPU for 2.5 days to reach 380k iterations for synthetic scenes and 1 day to reach 150k iters for Tanks & Temples scenes.
 ```bash
 python main.py --config configs/chair.txt --train
 ```
