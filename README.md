@@ -37,7 +37,7 @@ git clone https://github.com/sararoma95/Re-ReND.git && cd Re-ReND
 ### 2. Download data for Re-ReND
 We extract 10k images and a mesh for each scene of the *Blender Synthetic dataset* and the *Tanks & Temples dataset* from MipNeRF and NeRF++, respectively.
 You can download them [here](https://drive.google.com/drive/folders/1FZPRaU7w9S0aaBSUpyYHUUeHTJ68gJqD?usp=share_link).
-Note that each scene is ~120GB.
+Note that each scene is large (~120GB).
 
 ### 3. Training
 We train on an A100 GPU for 2.5 days to reach 380k iterations. However, training for 1 day is enough to obtain good results. 
