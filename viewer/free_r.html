@@ -1,0 +1,397 @@
+<div id="container" style="position: fixed; top: 0%; left: 0%"></div>
+
+<div id="info" style="position: absolute; left: 0px; font-size: 40px">
+  <div id="fpsdisplay"></div>
+  <div id="sizedisplay"></div>
+</div>
+
+
+<!-- Read G-Buffer and render to screen -->
+<script id="render-vert" type="x-shader/x-vertex">
+  in vec3 position;
+  in vec2 uv;
+
+  out vec2 vUv;
+  out vec3 vPosition;
+  out vec3 rayDirection;
+
+  uniform mat4 modelViewMatrix;
+  uniform mat4 projectionMatrix;
+  uniform mat4 modelMatrix;
+  
+  uniform vec3 cameraPosition;
+  
+
+  void main() {
+      vUv = uv;
+      vPosition = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      rayDirection = (modelMatrix * vec4( position, 1.0 )).rgb - cameraPosition;
+  }
+</script>
+
+<script type="module">
+  import * as THREE from "https://unpkg.com/three?module";
+
+  import WebGL from "https://unpkg.com/three/examples/jsm/capabilities/WebGL.js?module";
+
+  import { OBJLoader } from "https://unpkg.com/three/examples/jsm/loaders/OBJLoader.js?module";
+
+  import { OrbitControls } from "https://unpkg.com/three/examples/jsm/controls/OrbitControls.js?module";
+
+  // copied and slightly modified from MobileNeRF
+  const viewDependenceNetworkShaderFunctions = `
+    precision mediump float;
+
+    layout(location = 0) out vec4 pc_FragColor;
+
+    uniform mediump sampler2D u_tex;
+    uniform mediump sampler2D v_tex;
+    uniform mediump sampler2D w_tex;
+    uniform mediump sampler2D b_tex;
+
+    in vec2 vUv;
+    in vec3 vPosition;
+    in vec3 rayDirection;
+
+    mediump vec2 cartesian_to_spherical(mediump vec3 p){
+      mediump float pi = 3.1415;
+      mediump float xy = p.x * p.x + p.y * p.y;
+      mediump float r = sqrt(xy + p.z * p.z);
+      mediump float elev = atan(p.z, sqrt(xy));
+      mediump float azim = atan(p.y, p.x);
+
+      if (elev < 0.) {
+        elev += (2.0*pi);
+      }
+      if (azim < 0.) {
+        azim += (2.0*pi);
+      }
+      elev = (elev) / (2.0*pi);
+      azim = (azim) / (2.0*pi);
+      return vec2(elev, azim);
+    }
+    void main() {
+        mediump vec4 max_u[NUM_TEXTURES] = vec4[](
+            MAX_U_LIST
+        );
+        mediump vec4 max_v[NUM_TEXTURES] = vec4[](
+            MAX_V_LIST
+        );
+        mediump vec4 max_w[NUM_TEXTURES] = vec4[](
+            MAX_W_LIST
+        );
+        mediump vec4 min_u[NUM_TEXTURES] = vec4[](
+            MIN_U_LIST
+        );
+        mediump vec4 min_v[NUM_TEXTURES] = vec4[](
+            MIN_V_LIST
+        );
+        mediump vec4 min_w[NUM_TEXTURES] = vec4[](
+            MIN_W_LIST
+        );
+        mediump vec4 max_dir[NUM_TEXTURES] = vec4[](
+            MAX_B_LIST
+        );
+        mediump vec4 min_dir[NUM_TEXTURES] = vec4[](
+            MIN_B_LIST
+        );
+        vec3 color = vec3(0.0, 0.0, 0.0);
+        vec4 viewdir = vec4( normalize(rayDirection), 1.0 );
+
+        vec2 viewdir_spherical = cartesian_to_spherical(vec3(viewdir.r, -viewdir.g, -viewdir.b)).yx;
+        
+        int num_textures = NUM_TEXTURES;
+        int num_x = 4;
+        int num_y = int(ceil(float(num_textures) / float(num_x)));
+        float texture_offset_x = 1.0 / float(num_x);
+        float texture_offset_y = 1.0 / float(num_y);
+
+        int idx_x = 0;
+        int idx_y = num_y-1;
+
+        for (int j = 0; j < num_textures; j++) {
+            vec2 cur_vUv = vUv;
+            vec2 cur_dir_vUv = viewdir_spherical;
+
+            
+            cur_vUv.x =  (cur_vUv.x + float(idx_x)) * texture_offset_x;
+            cur_vUv.y =  (cur_vUv.y + float(idx_y)) * texture_offset_y;
+            cur_dir_vUv.x =  (cur_dir_vUv.x + float(idx_x)) * texture_offset_x;
+            cur_dir_vUv.y =  (1.0 - cur_dir_vUv.y + float(idx_y)) * texture_offset_y;
+
+            vec4 cur_u = (texture(u_tex, cur_vUv, 0.) * max_u[j]) + min_u[j];
+            vec4 cur_v = (texture(v_tex, cur_vUv, 0.) * max_v[j]) + min_v[j];
+            vec4 cur_w = (texture(w_tex, cur_vUv, 0.) * max_w[j]) + min_w[j];
+            vec4 cur_b = (texture(b_tex, cur_dir_vUv, 0.) * max_dir[j]) + min_dir[j];
+
+            color += vec3(dot(cur_u, cur_b), dot(cur_v, cur_b), dot(cur_w, cur_b));
+            
+            idx_x += 1;
+            if(idx_x == num_x){
+              idx_x = 0;
+              idx_y -= 1;
+            }
+        }
+        for (int i = 0; i < 3; ++i) {
+            color[i] = 1.0 / (1.0 + exp(-color[i]));
+        }
+
+
+        pc_FragColor.rgb = color;
+        pc_FragColor.a = 1.0;
+    }
+`;
+
+  let container;
+
+  let camera, scene, renderer, controls;
+  let renderTarget;
+  let postScene, postCamera;
+
+  let gLastFrame = window.performance.now();
+  let gLastLastFrame = window.performance.now();
+  let oldMilliseconds = 0;
+  let animation_frame = 0;
+  let gLoadedOBJs = 0;
+  let gLoadedPNGs = 0;
+  let gTotalOBJs = 0;
+  let gTotalPNGs = 0;
+
+
+
+  let maxFps = 0.0;
+
+  const preset_size_w = 980;
+  const preset_size_h = 546;
+  const object_rescale = 1.0;
+
+  init();
+
+  async function fetchJSON(url) {
+      const response = await fetch(url);
+      const json = await response.json();
+      return json;
+  }
+
+  function arrayToVec4List(array){
+    let vec4list = "";
+    for (let i = 0; i < array.length; i++) {
+      let val = array[i];
+      if (i % 4 == 0) {
+        vec4list += "vec4(";
+      }
+      vec4list += Number(val).toFixed(7);
+      if (i % 4 == 3) {
+        vec4list += ")";
+      }
+      if (i + 1 < array.length) {
+        vec4list += ", ";
+      }
+    }
+    return vec4list;
+  }
+
+  async function init() {
+    const params = new URL(window.location.href).searchParams;
+    const objname = params.get("obj");
+    // console.log(objname)
+
+    let obj_name = "train";
+    if (objname) {
+      obj_name = objname;
+    }
+
+    const qsize = params.get("qs");
+    let quad_size = "6";
+    if (qsize) {
+      quad_size = qsize;
+    }
+    quad_size = Number(quad_size);
+
+    if (WebGL.isWebGL2Available() === false) {
+      document.body.appendChild(WebGL.getWebGL2ErrorMessage());
+      return;
+    }
+
+    container = document.getElementById("container");
+    renderer = new THREE.WebGLRenderer({
+      powerPreference: "high-performance",
+      precision: "highp",
+    });
+    renderer.setPixelRatio(1);
+    renderer.setSize(preset_size_w, preset_size_h);
+    renderer.setClearColor(new THREE.Color("rgb(255, 255, 255)"), 1.0);
+    container.appendChild(renderer.domElement);
+
+    camera = new THREE.PerspectiveCamera(
+      50.27600751,
+      preset_size_w / preset_size_h,
+      .1 * object_rescale,
+      25 * object_rescale
+    );
+    camera.position.y = 2.0 * object_rescale;
+    camera.position.z = 3.464 * object_rescale;
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.screenSpacePanning = true;
+
+    scene = new THREE.Scene();
+    let num_textures = 8;
+    let fragmentShaderSource = viewDependenceNetworkShaderFunctions.replace(
+      new RegExp("NUM_TEXTURES", "g"),
+      num_textures
+    );
+
+    let unis = {};
+    const texs = [];
+    const texture_names = ["u", "v", "w", "b"];
+    gTotalPNGs = texture_names.length;
+    gTotalOBJs = 1;
+    let minmax_json = await fetchJSON(obj_name + "_real/meshes_textures_"+quad_size+"/minmax.json");
+    for (let j = 0, jl = texture_names.length; j < jl; j++) {
+
+      let min_list = arrayToVec4List(minmax_json["min_" + texture_names[j]]);
+      fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp("MIN_" + texture_names[j].toUpperCase() + "_LIST", "g"),
+        min_list
+      );
+      let max_list = arrayToVec4List(minmax_json["max_" + texture_names[j]]);
+      fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp("MAX_" + texture_names[j].toUpperCase() + "_LIST", "g"),
+        max_list
+      );
+
+      let tex = new THREE.TextureLoader().load(
+        obj_name + "_real/meshes_textures_" + quad_size +"/feat_" + texture_names[j] + ".png",
+        function () {
+          gLoadedPNGs++;
+          render();
+        }
+      );
+      tex.magFilter = THREE.NearestFilter;
+      tex.minFilter = THREE.NearestFilter;
+      tex.generateMipmaps = false;
+      texs.push(tex);
+      unis[texture_names[j] + "_tex"] = { value: texs[j] };
+      
+    }
+    let newmat = new THREE.RawShaderMaterial({
+      side: THREE.FrontSide,
+      vertexShader: document
+        .querySelector("#render-vert")
+        .textContent.trim(),
+      fragmentShader: fragmentShaderSource,
+      uniforms: unis,
+      glslVersion: THREE.GLSL3,
+    });
+    // console.log(obj_name)
+    var obj_file_name = "tat_intermediate_Train";
+    switch(obj_name){
+      case "tank":
+        obj_file_name = "tat_intermediate_M60";
+        break;
+      case "playground":
+        obj_file_name = "tat_intermediate_Playground";
+        break;
+      case "train":
+        obj_file_name = "tat_intermediate_Train";
+        break;
+      case "truck":
+        obj_file_name = "tat_training_Truck";
+        break;
+    }
+    
+    var OBJFile = obj_name + "_real/meshes_textures_" + quad_size +"/" + obj_file_name + ".obj";
+    new OBJLoader().load(
+      OBJFile,
+      function (object) {
+        object.traverse(function (child) {
+          if (child.type == "Mesh") {
+            child.material = newmat;
+          }
+        });
+        gLoadedOBJs++;
+        object.scale.x = object_rescale;
+        object.scale.y = object_rescale;
+        object.scale.z = object_rescale;
+        object.rotation.x = Math.PI;
+        scene.add(object);
+      }
+    );
+    
+    
+    window.addEventListener("resize", onWindowResize, false);
+    animate();
+  }
+
+  function onWindowResize() {
+    camera.aspect = preset_size_w / preset_size_h;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(preset_size_w, preset_size_h);
+
+    document.getElementById("sizedisplay").innerHTML =
+      "Size: " + preset_size_w.toFixed(0) + "x" + preset_size_h.toFixed(0);
+
+    render();
+  }
+
+  function animate() {
+    if (gTotalOBJs == 0 || gLoadedOBJs != gTotalOBJs || gLoadedPNGs != gTotalPNGs) {
+      document.getElementById('fpsdisplay').innerHTML = "Loaded OBJs: " + gLoadedOBJs.toFixed(0) + "/" + gTotalOBJs.toFixed(0) + "  Loaded PNGs: " + gLoadedPNGs.toFixed(0) + "/" + gTotalPNGs.toFixed(0);
+      requestAnimationFrame(animate);
+      render();
+    }
+    else{
+      requestAnimationFrame(animate);
+
+      controls.update();
+      render();
+      
+      gLastLastFrame = window.performance.now() - gLastFrame;
+      gLastFrame = window.performance.now();
+      let smoothFps = 1000 / gLastLastFrame;
+      document.getElementById('fpsdisplay').innerHTML = "FPS: " + smoothFps.toFixed(2)
+    }
+    }
+  // function animate() {
+
+  //   if (gTotalOBJs == 0 || gLoadedOBJs != gTotalOBJs || gLoadedPNGs != gTotalPNGs) {
+  //     document.getElementById('fpsdisplay').innerHTML = "Loaded OBJs: " + gLoadedOBJs.toFixed(0) + "/" + gTotalOBJs.toFixed(0) + "  Loaded PNGs: " + gLoadedPNGs.toFixed(0) + "/" + gTotalPNGs.toFixed(0);
+  //     requestAnimationFrame(animate);
+  //     render();
+  //   }
+  //   else {
+  //     if (animation_frame < 360 * 5) {
+  //       requestAnimationFrame(animate);
+
+  //       animation_frame += 1
+  //       camera.position.x = Math.sin(animation_frame * Math.PI / 180) * object_rescale;
+  //       camera.position.y = 0.4 * object_rescale;
+  //       camera.position.z = Math.cos(animation_frame * Math.PI / 180) * object_rescale;
+  //       camera.lookAt(0, 0, 0)
+
+  //       render();
+
+  //       if (animation_frame % 360 == 0) {
+  //         gLastLastFrame = window.performance.now() - gLastFrame;
+  //         gLastFrame = window.performance.now();
+
+  //       }
+
+  //       let smoothFps = (1000 * 360) / gLastLastFrame;
+  //       if (animation_frame % 360 == 0 && maxFps < smoothFps) {
+  //         maxFps = smoothFps;
+  //       }
+  //       document.getElementById('fpsdisplay').innerHTML = "FPS: " + smoothFps.toFixed(2) + "  MaxFPS: " + maxFps.toFixed(2) + "  Turns: " + ~~(animation_frame / 360) + "  Frame: " + (animation_frame % 360);
+  //     }
+  //   }
+  // }
+
+  function render() {
+    // render scene into target
+    renderer.setRenderTarget(null);
+    renderer.render(scene, camera);
+  }
+</script>

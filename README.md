@@ -60,20 +60,7 @@ python main.py --config configs/chair.txt --compute_metrics
 ```
 ### 6. Running the viewer
 The viewer code is provided in this repo, as three .html files for two types of datasets.
-You can set up a local server on your machine, e.g.,
-```
-cd folder_containing_the_html
-python -m http.server
-```
-Then open
-```
-localhost:8000/view_syn.html?obj=chair
-```
-Note that you should put the meshes+textures of the chair model in a folder chair_phone. The folder should be in the same directory as the html file.
-
-Please allow some time for the scenes to load. Use left mouse button to rotate, right mouse button to pan (especially for forward-facing scenes), and scroll wheel to zoom. On phones, Use you fingers to rotate or pan or zoom. Resize the window (or landscape<->portrait your phone) to show the resolution.
-
-Based on MobileNeRF github.
+The isntruction to use are inside the folder viewer.
 
 ### Note: Create the data by yourself
 The scripts to extract the data are also provided for this especif implementations. Feel free to recreate the data by yourself.
