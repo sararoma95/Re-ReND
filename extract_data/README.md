@@ -8,7 +8,7 @@ After training and keeping their enviroments. You should do this.
 2. Change *TRAIN_DIR* and *DATA_DIR* in <code>extract_imgs.sh</code> and <code>extract_grid.sh</code>
 3. Change in the <code>internal</code> folder the <code>utils.py</code> script with the one provided.
 
-### Extract the mesh
+### Extract meshes
 4. To extract the grid of densities and the mesh, you should run:
 ```
 sh scripts/extract_grid.sh -u SCENE
