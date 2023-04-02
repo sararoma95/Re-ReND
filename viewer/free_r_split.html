@@ -45,10 +45,7 @@
 
     layout(location = 0) out vec4 pc_FragColor;
 
-    uniform mediump sampler2D u_tex;
-    uniform mediump sampler2D v_tex;
-    uniform mediump sampler2D w_tex;
-    uniform mediump sampler2D b_tex;
+    SPLITS_DEF
 
     in vec2 vUv;
     in vec3 vPosition;
@@ -90,45 +87,43 @@
         mediump vec4 min_w[NUM_TEXTURES] = vec4[](
             MIN_W_LIST
         );
-        mediump vec4 max_dir[NUM_TEXTURES] = vec4[](
+        mediump vec4 max_b[NUM_TEXTURES] = vec4[](
             MAX_B_LIST
         );
-        mediump vec4 min_dir[NUM_TEXTURES] = vec4[](
+        mediump vec4 min_b[NUM_TEXTURES] = vec4[](
             MIN_B_LIST
         );
         vec3 color = vec3(0.0, 0.0, 0.0);
         vec4 viewdir = vec4( normalize(rayDirection), 1.0 );
 
         vec2 viewdir_spherical = cartesian_to_spherical(vec3(viewdir.r, -viewdir.g, -viewdir.b)).yx;
-        
-        int num_textures = NUM_TEXTURES;
-        int num_x = 4;
-        int num_y = int(ceil(float(num_textures) / float(num_x)));
-        float texture_offset_x = 1.0 / float(num_x);
-        float texture_offset_y = 1.0 / float(num_y);
+  
+
+        int local_num_x = 1;
+        int local_num_y = LOCAL_NUM_Y;
+        int num_textures = local_num_x * local_num_y;
+        int num_texture_splits = NUM_TEXTURE_SPLITS;
+
+        float texture_offset_x = 1.0 / float(local_num_x);
+        float texture_offset_y = 1.0 / float(local_num_y);
 
         int idx_x = 0;
-        int idx_y = num_y-1;
+        int idx_y = local_num_y-1;
 
         for (int j = 0; j < num_textures; j++) {
             vec2 cur_vUv = vUv;
             vec2 cur_dir_vUv = viewdir_spherical;
-
-            
             cur_vUv.x =  (cur_vUv.x + float(idx_x)) * texture_offset_x;
             cur_vUv.y =  (cur_vUv.y + float(idx_y)) * texture_offset_y;
             cur_dir_vUv.x =  (cur_dir_vUv.x + float(idx_x)) * texture_offset_x;
             cur_dir_vUv.y =  (1.0 - cur_dir_vUv.y + float(idx_y)) * texture_offset_y;
 
-            vec4 cur_u = (texture(u_tex, cur_vUv, 0.) * max_u[j]) + min_u[j];
-            vec4 cur_v = (texture(v_tex, cur_vUv, 0.) * max_v[j]) + min_v[j];
-            vec4 cur_w = (texture(w_tex, cur_vUv, 0.) * max_w[j]) + min_w[j];
-            vec4 cur_b = (texture(b_tex, cur_dir_vUv, 0.) * max_dir[j]) + min_dir[j];
+            vec4 cur_u, cur_v, cur_w, cur_b;
 
-            color += vec3(dot(cur_u, cur_b), dot(cur_v, cur_b), dot(cur_w, cur_b));
+            SPLITS_FOR
             
             idx_x += 1;
-            if(idx_x == num_x){
+            if(idx_x == local_num_x){
               idx_x = 0;
               idx_y -= 1;
             }
@@ -225,7 +220,7 @@
       preset_size_h = parseInt(match[2], 10);
     }
 
-    let texture_folder = obj_name + "_real/meshes_textures_" + quad_size + "_" + num_textures
+    let texture_folder = obj_name + "_real/meshes_textures_" + quad_size + "_" + num_textures + "_split"
 
     
 
@@ -263,12 +258,29 @@
       num_textures
     );
 
+    let num_texture_splits = 4;
+    let local_num_y = 2;
+    if (num_textures == 16) {
+      num_texture_splits = 16;
+      local_num_y = 1;
+    }
+    fragmentShaderSource = fragmentShaderSource.replace(
+      new RegExp("NUM_TEXTURE_SPLITS", "g"),
+      num_texture_splits
+    );
+    fragmentShaderSource = fragmentShaderSource.replace(
+      new RegExp("LOCAL_NUM_Y", "g"),
+      local_num_y
+    );
+
     let unis = {};
     const texs = [];
     const texture_names = ["u", "v", "w", "b"];
-    gTotalPNGs = texture_names.length;
+    gTotalPNGs = texture_names.length * num_texture_splits;
     gTotalOBJs = 1;
-    let minmax_json = await fetchJSON(texture_folder +"/minmax.json");
+    let minmax_json = await fetchJSON(texture_folder + "/minmax.json");
+    let splits_def = "";
+    let splits_for = ""
     for (let j = 0, jl = texture_names.length; j < jl; j++) {
 
       let min_list = arrayToVec4List(minmax_json["min_" + texture_names[j]]);
@@ -281,21 +293,45 @@
         new RegExp("MAX_" + texture_names[j].toUpperCase() + "_LIST", "g"),
         max_list
       );
-
-      let tex = new THREE.TextureLoader().load(
-        texture_folder +"/feat_" + texture_names[j] + ".png",
-        function () {
-          gLoadedPNGs++;
-          render();
-        }
-      );
-      tex.magFilter = THREE.NearestFilter;
-      tex.minFilter = THREE.NearestFilter;
-      tex.generateMipmaps = false;
-      texs.push(tex);
-      unis[texture_names[j] + "_tex"] = { value: texs[j] };
-      
     }
+    for (let k = 0; k < num_texture_splits; k++) {
+      for (let j = 0, jl = texture_names.length; j < jl; j++) {
+        let tn = texture_names[j];
+        let tex = new THREE.TextureLoader().load(
+          texture_folder + "/feat_" + tn + "_" + k + ".png",
+          function () {
+            gLoadedPNGs++;
+            // render();
+          }
+        );
+        tex.magFilter = THREE.NearestFilter;
+        tex.minFilter = THREE.NearestFilter;
+        tex.generateMipmaps = false;
+        tex.anisotropy = 1;
+        texs.push(tex)
+        unis[tn + "_tex_" + k] = { value: tex };
+        splits_def += "uniform mediump sampler2D " + tn + "_tex_" + k + "; \n"
+        let idx = "j + num_textures * " + k
+        if (tn != "b") {
+          splits_for += "cur_" + tn + " = (texture(" + tn + "_tex_" + k + ", cur_vUv, 0.) * max_" + tn + "[" + idx + "]) + min_" + tn + "[" + idx + "]; \n"
+        }
+        else {
+          splits_for += "cur_" + tn + " = (texture(" + tn + "_tex_" + k + ", cur_dir_vUv, 0.) * max_" + tn + "[" + idx + "]) + min_" + tn + "[" + idx + "]; \n"
+        }
+
+      }
+      splits_for += "color += vec3(dot(cur_u, cur_b), dot(cur_v, cur_b), dot(cur_w, cur_b)); \n"
+
+      // unis[texture_names[j] + "_tex"] = { value: all_texs[j] };
+    }
+    fragmentShaderSource = fragmentShaderSource.replace(
+      new RegExp("SPLITS_DEF", "g"),
+      splits_def
+    );
+    fragmentShaderSource = fragmentShaderSource.replace(
+      new RegExp("SPLITS_FOR", "g"),
+      splits_for
+    );
     let newmat = new THREE.RawShaderMaterial({
       side: THREE.FrontSide,
       vertexShader: document
