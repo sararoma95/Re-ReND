@@ -10,6 +10,7 @@ Then open
 localhost:8080/free_syn.html?obj=chair&qs=6&ntex=8
 ```
 Note that you should put the *UVWB textures*, *minmax.json* and *.obj* inside of <code>obj_name + "/meshes_textures_" + tri_size + "_" + num_textures</code> folder. The folder should be in the same directory as the html file.
+Once textures have been extracted, they can be partitioned with the script "splits.py" in order to load them in devices with lower GL memory capabilities at the cost of rendering speed.
 
 <code>num_textures</code> is <code>8</code> if you use embedding dimesion = 32 (<code>args.components</code>) or <code>16</code> in case you use 64.
 
