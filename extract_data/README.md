@@ -17,8 +17,11 @@ sh scripts/extract_grid.sh -u SCENE
 sh scripts/extract_imags.sh -u SCENE -c SEED
 ```
   Each time you run this you get a file <code>{SCENE}_{SEED}.pt</code> with 500 images.
+  
   You should run it 20 times to get the 10k images.
+  
   <code>-c</code> is the seed in order to synthetize diferent chucks of 500 images. Also, it means the name of the file blender_paper_chair_{SEED}.pt
+  
   Files will be drop in <code>pseudo</code> folder
 
 
