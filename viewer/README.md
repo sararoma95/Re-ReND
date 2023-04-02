@@ -9,7 +9,7 @@ Then open
 ```
 localhost:8000/free_syn.html?obj=chair&qs6&ntex8
 ```
-Note that you should put the *UVWB textures*, *minmax.json* and *.obj* inside of <code>obj_name + "/meshes_textures_" + tri_size + "_" + num_textures</code> folder <code>chair</code>. The folder should be in the same directory as the html file.
+Note that you should put the *UVWB textures*, *minmax.json* and *.obj* inside of <code>obj_name + "/meshes_textures_" + tri_size + "_" + num_textures</code> folder. The folder should be in the same directory as the html file.
 
 <code>num_textures</code> is <code>8</code> if you use embedding dimesion = 32 (<code>args.components</code>) or <code>16</code> in case you use 64.
 
