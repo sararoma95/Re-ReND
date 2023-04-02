@@ -29,6 +29,38 @@ sh scripts/extract_imags.sh -u SCENE -c SEED
   
   <code>-c</code> is the seed in order to synthetize different chunks of 500 images. Also, it means that the name of the file will be <code>blender_paper_chair_{SEED}.pt</code>.
   
-  Files will be drop in <code>pseudo</code> folder
+  Files will be drop in <code>pdata</code> folder
+7. Divide the data, from origins and directions to intersected points.
+```
+python main.py --config configs/chair.txt --divide
+```
 
+## [NeRF++](https://github.com/Kai-46/nerfplusplus)
+1. Put <code>extract_imgs_nerf++.py</code> and <code>extract_grid_nerf++.py</code> in the main directory.
+2. Add the following line in <code>ddp_train_nerf.py</code> script in line 609:
+```
+parser.add_argument("--id", type=int, default=0, help='id gpu generated data')
+```
+### Extract meshes
+2. To extract the grid of densities and the mesh, you should run:
+```
+python extract_grid_nerf++.py --config configs/SCENE.txt 
+```
+3. To extract the mesh from the density grid, you should run:
+```
+python main.py --config configs/tat_training_truck.txt    --create_mesh  --from_file {PATH}/truck.npy      --threshold 12 
+```
+### Extract images
+4. To extract the 500 images, you should run:
+```
+python extract_grid_nerf++.py --config configs/SCENE.txt --folder pdata --id SEED
+```
+  Each time you run this you get a file <code>{SCENE}_{SEED}.pt</code> with 500 images.
+  
+  You should run it 20 times to get the 10k images.
+ <code>--id</code> is the seed in order to synthetize different chunks of 500 images. Also, it means that the name of the file will be <code>tat_training_Truck_{SEED}.pt</code>.
 
+7. Divide the data, from origins and directions to intersected points.
+```
+python main.py --config configs/tat_training_truck.txt --divide
+```
