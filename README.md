@@ -43,11 +43,12 @@ We train on an A100 GPU for 2.5 days to reach 380k iterations for synthetic scen
 ```bash
 python main.py --config configs/chair.txt --train
 ```
+if you want to track your experiments, use <code>--with_wandb</code> flag
 ### 4. Evaluate before quantization (continuous)
 ```bash
 python main.py --config configs/chair.txt --render_only
 ```
-### 5. Export textures UVWB
+### 5. Export UVWB textures 
 ```bash
 python main.py --config configs/chair.txt --export_textures
 ```
