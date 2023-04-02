@@ -10,7 +10,7 @@ from internal.config import config_parser
 from internal.test import test_quantization
 from internal.textures import export_textures
 from internal.model import create_nerf, render
-from internal.dataset.data import load_test_dataset
+from internal.dataset.data import load_test_dataset, divide_data
 
 if __name__ == "__main__":
     # Seeking for CUDA
@@ -56,8 +56,19 @@ if __name__ == "__main__":
         prYellow(f'Mesh exported to {args.mesh_path}')
         exit()
 
-    # Loading mesh
     mesh = Mesh(args.mesh_path)
+
+    if args.divide:
+        prBlue('DIVIDING DATA')
+        path_out = join(args.basedir + '_' + args.folder)
+
+        # from origins and direction to points of intersection.
+        divide_data( join(args.datadir, 'pdata'), path_out, mesh)
+
+        prYellow(f'Data exported to {path_out}')
+        exit()
+
+    # Loading mesh
 
     if args.compute_metrics:
         prBlue('COMPUTING QUANTIZED METRICS')

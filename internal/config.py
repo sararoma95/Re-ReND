@@ -110,11 +110,13 @@ def config_parser():
                         help='do not reload weights from saved ckpt')
     # dataset options
     parser.add_argument("--dataset_type", type=str, default='blender',
-                        help='options: llff / blender / deepvoxels')
+                        help='options: blender / tanks_and_temples')
     parser.add_argument("--testskip", type=int, default=8,
                         help='will load 1/N images from test/val sets, useful for large datasets like deepvoxels')
     parser.add_argument("--num_files", type=int, default=4,
                         help='how many files load to cpu memory')
+    parser.add_argument("--divide", action='store_true',
+                        help='from origins and direction to intersected points')
     # logging/saving options
     parser.add_argument("--i_print",   type=int, default=1000,
                         help='frequency of console printout and metric loggin')

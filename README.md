@@ -49,7 +49,7 @@ We train on an A100 GPU for 2.5 days to reach 380k iterations for synthetic scen
 python main.py --config configs/chair.txt --train
 ```
 
-If you want to track your experiments, use <code>--with_wandb</code> flag
+If you want to track your experiments, use <code>--with_wandb</code> 
 
 In case of GPU OOM, try to reduce  <code>--batch_size</code>
 
