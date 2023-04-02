@@ -1,13 +1,19 @@
 # Re-ReND: Real-time Rendering of NeRFs across Devices
 
-### [ArXiv](https://arxiv.org/abs/2303.08717) | [PDF](https://arxiv.org/pdf/2303.08717.pdf) 
+Sara Rojas<sup>1</sup>, Jesus Zarzar<sup>1</sup>, Juan C. Pérez<sup>1</sup>, Artsiom Sanakoyeu<sup>2</sup>, Ali Thabet<sup>2</sup>, Albert Pumarola<sup>2</sup>, Bernard Ghanem<sup>1</sup>
 
-This repository is the official implementation of Re-ReND, a method for rendering NeRFs in real-time in devices such as AR/VR headsets, mobiles and tablets.
+KAUST<sup>1</sup>, Meta Research<sup>2</sup>
+
+**[TL;DR]** We propose Re-ReND for efficient real-time rendering of pre-trained Neural Radiance Fields (NeRFs) on resource-limited devices. Re-ReND achieves this by distilling the NeRF representation into a mesh of learned densities and a set of matrices representing the learned light field, which can be queried using inexpensive matrix multiplications.
 <div align="center">
     <a><img src="figs/Re-ReND_pull_fig.png"  width="700" ></a>
 </div>
 
-**[TL;DR]** We propose Re-ReND for efficient real-time rendering of pre-trained Neural Radiance Fields (NeRFs) on resource-limited devices. Re-ReND achieves this by distilling the NeRF representation into a mesh of learned densities and a set of matrices representing the learned light field, which can be queried using inexpensive matrix multiplications.
+This repository contains the official implementation of Re-ReND, for rendering NeRFs in real-time in devices such as AR/VR headsets, mobiles and tablets.
+
+### [ArXiv](https://arxiv.org/abs/2303.08717) | [PDF](https://arxiv.org/pdf/2303.08717.pdf) 
+
+---
 
 Training Re-ReND:
 <div align="center">
