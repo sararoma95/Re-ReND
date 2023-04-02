@@ -34,9 +34,13 @@ git clone https://github.com/sararoma95/Re-ReND.git && cd Re-ReND
 conda env create -f environment.yml
 ```
 ### 2. Download data for Re-ReND
-We extract 10k images and a mesh for each scene of the *Blender Synthetic dataset* and the *Tanks & Temples dataset* from [MipNeRF](https://github.com/google/mipnerf) and [NeRF++](https://github.com/Kai-46/nerfplusplus), respectively.
+1. We extract 10k images and a mesh for each scene of the *Blender Synthetic dataset* and the *Tanks & Temples dataset* from [MipNeRF](https://github.com/google/mipnerf) and [NeRF++](https://github.com/Kai-46/nerfplusplus), respectively.
 You can download them [here](https://drive.google.com/drive/folders/1FZPRaU7w9S0aaBSUpyYHUUeHTJ68gJqD?usp=share_link).
 Note that each scene is large (~120GB).
+
+2. Then, you'll need to download the datasets from the [NeRF official Google Drive](https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1) and [Tanks & Temples](https://drive.google.com/file/d/11KRfN91W1AxAW6lOFs4EeYDbeoQZCi87/view). Please download and unzip nerf_synthetic.zip and tanks_and_temples.zip.
+
+3. Finally, put datasets from *2.* inside of <code>data</code> folder. Place the scene from *1.* in *2.*. E.g. <code>/data/nerf_synthetic/chair/logs_exp_lev_0.0_thr_49.0/blender_paper_chair_*.pt</code>
 
 ### 3. Training
 We train on an A100 GPU for 2.5 days to reach 380k iterations for synthetic scenes and 1 day to reach 150k iters for Tanks & Temples scenes.
