@@ -8,6 +8,7 @@ After training and keeping their enviroments. You should do this.
 2. Change *TRAIN_DIR* and *DATA_DIR* in <code>extract_imgs.sh</code> and <code>extract_grid.sh</code>
 3. Change in the <code>internal</code> folder the <code>utils.py</code> script with the one provided.
 
+### Extract the mesh
 4. To extract the grid of densities and the mesh, you should run:
 ```
 sh scripts/extract_grid.sh -u SCENE
@@ -16,6 +17,7 @@ sh scripts/extract_grid.sh -u SCENE
 ```
 python main.py --config configs/chair.txt    --create_mesh  --from_file {PATH}/chair.npy      --threshold 49 
 ```
+### Extract the 10k imgs
 6. To extract the 500 images, you should run:
 ```
 sh scripts/extract_imags.sh -u SCENE -c SEED
@@ -24,7 +26,7 @@ sh scripts/extract_imags.sh -u SCENE -c SEED
   
   You should run it 20 times to get the 10k images.
   
-  <code>-c</code> is the seed in order to synthetize diferent chucks of 500 images. Also, it means the name of the file blender_paper_chair_{SEED}.pt
+  <code>-c</code> is the seed in order to synthetize different chunks of 500 images. Also, it means that the name of the file will be <code>blender_paper_chair_{SEED}.pt</code>.
   
   Files will be drop in <code>pseudo</code> folder
 
