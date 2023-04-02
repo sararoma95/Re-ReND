@@ -4,11 +4,13 @@ After training and keeping their enviroments. You should do this.
 ## [MipNeRF](https://github.com/google/mipnerf)
 1. Put inside <code>scripts</code> folder the following scripts <code>extract_imgs.sh</code> and <code>extract_grid.sh</code>
 2. Change *TRAIN_DIR* and *DATA_DIR* in <code>extract_imgs.sh</code> and <code>extract_grid.sh</code>
-3. To extract the grid of densities, you should run:
+3. Change in <code>internal</code> folder utils with the one provided.
+
+4. To extract the grid of densities, you should run:
 ```
 sh scripts/extract_grid.sh -u chair
 ```
-4. To extract the 500 images, you should run:
+5. To extract the 500 images, you should run:
 ```
 sh scripts/extract_imags.sh -u SCENE -c SEED
 ```
