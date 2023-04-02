@@ -21,7 +21,7 @@ dependencies:
   - scikit-fmm==2022.3.26
   - scikit-image==0.19.3
   - scikit_learn==0.24.2
-  - numpy==1.22
+  - numpy==1.21.5
   - opencv-python==4.5.3.56
   - tqdm==4.61.2
   - configargparse==1.5.1

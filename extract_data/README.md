@@ -14,7 +14,7 @@ sh scripts/extract_grid.sh -u SCENE
 ```
 5. To extract the mesh from the density grid, you will have to use <code>--from_file</code> for the path of the grid of densities.
 ```
-python main.py --config configs/chair.txt    --create_mesh  --from_file {PATH}/chair.npy      --threshold 49  --level_set 0.0      --resolution 512
+python main.py --config configs/chair.txt    --create_mesh  --from_file {PATH}/chair.npy      --threshold 49 
 ```
 6. To extract the 500 images, you should run:
 ```
