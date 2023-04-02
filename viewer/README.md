@@ -13,7 +13,7 @@ Note that you should put the *UVWB textures*, *minmax.json* and *.obj* inside of
 Once textures have been extracted, they can be partitioned with the script "splits.py" in order to load them in devices with lower GL memory capabilities at the cost of rendering speed.
 To do so, run
 ```
-python split.py --path <code>
+python split.py --path <path_to_scenes>
 ```
 
 <code>num_textures</code> is <code>8</code> if you use embedding dimesion = 32 (<code>args.components</code>) or <code>16</code> in case you use 64.
