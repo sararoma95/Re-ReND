@@ -62,11 +62,11 @@ python main.py --config configs/chair.txt --render_only
 ```bash
 python main.py --config configs/chair.txt --export_textures
 ```
-### 5. Evaluate after quantization 
+### 6. Evaluate after quantization 
 ```bash
 python main.py --config configs/chair.txt --compute_metrics
 ```
-### 6. Running the viewer
+### 7. Running the viewer
 The viewer code is provided in this repo, as four .html files for two types of datasets.
 The instructions to use are inside the folder <code>viewer</code>.
 ### Pretrained models
