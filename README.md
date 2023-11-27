@@ -1,4 +1,4 @@
-# Re-ReND: Real-time Rendering of NeRFs across Devices
+# Re-ReND: Real-time Rendering of NeRFs across Devices [ICCV 2023 YAYYY]
 
 Sara Rojas<sup>1</sup>, Jesus Zarzar<sup>1</sup>, Juan C. Pérez<sup>1</sup>, Artsiom Sanakoyeu<sup>2</sup>, Ali Thabet<sup>2</sup>, Albert Pumarola<sup>2</sup>, Bernard Ghanem<sup>1</sup>
 
